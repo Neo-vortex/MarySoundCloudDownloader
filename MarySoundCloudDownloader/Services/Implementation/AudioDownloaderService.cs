@@ -1,8 +1,10 @@
 using System.Diagnostics;
+using System.Text.Encodings.Web;
 using MarySoundCloudDownloader.Helpers;
 using MarySoundCloudDownloader.Models;
 using MarySoundCloudDownloader.Services.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
+using UrlEncoder = MarySoundCloudDownloader.Helpers.UrlEncoder;
 
 
 namespace MarySoundCloudDownloader.Services.Implementation;
@@ -62,7 +64,7 @@ public class AudioDownloaderService(ILogger<AudioDownloaderService> logger, IBro
             
             return new DownloadResult()
             {
-                FilePath =  httpContextAccessor.HttpContext!.Request.Scheme + "://" + httpContextAccessor.HttpContext!.Request.Host.Value + "/" + filename,
+                FilePath = UrlEncoder.EncodeUrl( httpContextAccessor.HttpContext!.Request.Scheme + "://" + httpContextAccessor.HttpContext!.Request.Host.Value + "/" + filename ),
                 TrackName = logs.TrackName,
                 TrackImage = logs.TrackImage,
             };
