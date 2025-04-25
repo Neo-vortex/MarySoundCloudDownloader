@@ -34,7 +34,6 @@
 ### Prerequisites
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- [Chrome browser](https://www.google.com/chrome/)
 - [FFmpeg installed](https://ffmpeg.org/download.html) and available in system PATH
 
 ### Clone & Run
