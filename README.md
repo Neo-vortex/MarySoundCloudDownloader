@@ -15,6 +15,9 @@
 - 📱 Generates a **QR code** for easy mobile download
 - ♻️ Tracks are temporary – links last for **20 minutes**
 - 🛡️ Built-in **rate limiting** to prevent abuse
+![image](https://github.com/user-attachments/assets/a90ee3ff-67f1-471e-9662-317e5534ec9b)
+![image](https://github.com/user-attachments/assets/eb9d18be-c533-434f-8270-a9f71aa8a69c)
+![image](https://github.com/user-attachments/assets/ce6b0c9c-7682-4769-900f-f1629a908487)
 
 ---
 
@@ -34,7 +37,6 @@
 ### Prerequisites
 
 - [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- [Chrome browser](https://www.google.com/chrome/)
 - [FFmpeg installed](https://ffmpeg.org/download.html) and available in system PATH
 
 ### Clone & Run
@@ -60,3 +62,6 @@ Mary SoundCloud Downloader includes a token bucket limiter to ensure fair usage:
 
 This tool is meant for educational purposes only.  
 Always respect artist rights and avoid distributing copyrighted content.
+
+##Todo
+Will try to serve it somewhere cheap :)
