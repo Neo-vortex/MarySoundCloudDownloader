@@ -1,0 +1,256 @@
+﻿@page "/"
+@using MarySoundCloudDownloader.Helpers
+@using MarySoundCloudDownloader.Models
+@using MarySoundCloudDownloader.Services.Interfaces
+@using Microsoft.AspNetCore.RateLimiting
+@inject IAudioDownloaderService AudioDownloaderService
+@using PinguApps.Blazor.QRCode
+@inject IJSRuntime JsRuntime
+
+<div class="min-vh-100 d-flex flex-column" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+    <main class="flex-grow-1 py-5">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4 p-md-5">
+                            <div class="text-center mb-5">
+                                <div class="bg-primary bg-opacity-10 d-inline-flex p-3 rounded-circle mb-4">
+                                    <i class="fas fa-cloud-download-alt text-primary fs-1"></i>
+                                </div>
+                                <h2 class="fw-bold mb-3">Mary Download SoundCloud Tracks</h2>
+                                <p class="text-muted mb-0">Convert any SoundCloud track to high-quality MP3 instantly</p>
+
+                                <div class="alert alert-warning mt-4 text-start small">
+                                    <div class="d-flex align-items-start">
+                                        <i class="fas fa-exclamation-circle me-2 mt-1"></i>
+                                        <div>
+                                            <strong>Important Notes:</strong>
+                                            <ul class="mb-0">
+                                                <li>Currently supports <strong>individual tracks only</strong> (no playlists or profiles)</li>
+                                                <li>This is a beta product - may experience occasional slowness</li>
+                                                <li>Please use fairly - excessive requests may be rate-limited</li>
+                                                <li>Can not download tracks linked from a personal playlist yet. provide the direct track from the artist him/her self</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <div class="input-group input-group-lg">
+                                    <span class="input-group-text bg-white">
+                                        <i class="fas fa-link text-muted"></i>
+                                    </span>
+                                    <input
+                                        type="text"
+                                        class="form-control border-start-0"
+                                        placeholder="Paste SoundCloud track URL here..."
+                                        @bind="trackUrl"
+                                        @onkeypress="HandleKeyPress"
+                                        id="urlInput">
+                                    <button
+                                        class="btn btn-outline-secondary"
+                                        type="button"
+                                        @onclick="HandlePasteClick"
+                                        title="Paste from clipboard">
+                                        <i class="fas fa-paste"></i>
+                                    </button>
+                                    <button
+                                        class="btn btn-primary px-4"
+                                        @onclick="StartDownload"
+                                        disabled="@isLoading">
+                                        @if (isLoading)
+                                        {
+                                            <span>
+                                                <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                                                Processing...
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span><i class="fas fa-download me-2"></i> Download</span>
+                                        }
+                                    </button>
+                                </div>
+                                <div class="form-text text-end mt-2">
+                                    Example: https://soundcloud.com/artist/track-name
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(statusMessage))
+                            {
+                                <div class="alert @alertClass mt-4 d-flex align-items-center" role="alert">
+                                    <i class="@alertIcon me-2"></i>
+                                    <div>@statusMessage</div>
+                                </div>
+                            }
+
+                            @if (showResult && downloadResult.IsSuccessful)
+                            {
+                                <div class="mt-4 p-4 bg-light rounded">
+                                    <div class="d-flex align-items-center mb-4">
+                                        @if (!string.IsNullOrEmpty(downloadResult.Value.TrackImage))
+                                        {
+                                            <img src="data:image/jpeg;base64,@downloadResult.Value.TrackImage"
+                                                 alt="@downloadResult.Value.TrackName"
+                                                 class="rounded me-3"
+                                                 style="width: 64px; height: 64px; object-fit: cover">
+                                        }
+                                        <div>
+                                            <h5 class="fw-bold mb-1">@downloadResult.Value.TrackName</h5>
+                                            <p class="text-muted mb-0 small">Your track has been processed successfully</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex align-items-center justify-content-between mb-3">
+                                        <div>
+                                            <h6 class="fw-bold mb-1">Download Ready!</h6>
+                                            <p class="text-muted mb-0 small">Available in MP3 format</p>
+                                        </div>
+                                        <a href="@downloadResult.Value.FilePath" class="btn btn-success px-4" download>
+                                            <i class="fas fa-file-download me-2"></i> Download Now
+                                        </a>
+                                    </div>
+
+                                    <div class="text-center mt-4 p-3 bg-white rounded">
+                                        <p class="small text-muted mb-2">Scan to download on mobile</p>
+                                        <QRCode Data="@downloadResult.Value.FilePath" Size="150px" class="img-fluid" />
+                                        <p class="small text-muted mt-2">@downloadResult.Value.TrackName</p>
+                                        <p class="small text-muted mt-2">Link is live for 20 min</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="py-4 bg-white border-top">
+        <div class="container text-center text-muted small">
+            <div class="mb-2">
+                <p class="mb-1">Mary SoundCloud Downloader is not affiliated with SoundCloud.</p>
+                <p class="mb-1">For educational purposes only. Please respect artists' rights.</p>
+            </div>
+            <div class="mt-2">
+                <p class="mb-0">
+                    <i class="fas fa-bug me-1"></i> Found an issue?
+                    <a href="https://github.com/your-repo/issues" target="_blank" class="text-decoration-none">
+                        Report on GitHub with the track URL
+                    </a>
+                </p>
+            </div>
+        </div>
+    </footer>
+</div>
+
+@code {
+    private string trackUrl = string.Empty;
+    private string statusMessage = string.Empty;
+    private bool isLoading = false;
+    private bool showResult = false;
+    private RequestResult<DownloadResult> downloadResult = null;
+
+    private string alertClass => statusMessage.StartsWith("✅") ? "alert-success" :
+        statusMessage.StartsWith("❌") ? "alert-danger" : "alert-info";
+
+    private string alertIcon => statusMessage.StartsWith("✅") ? "fas fa-check-circle" :
+        statusMessage.StartsWith("❌") ? "fas fa-times-circle" : "fas fa-info-circle";
+
+    
+    public static string CleanSoundCloudUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            return url;
+
+        try
+        {
+            var uri = new Uri(url);
+            var cleanUri = new UriBuilder
+            {
+                Scheme = uri.Scheme,
+                Host = uri.Host,
+                Path = uri.AbsolutePath
+            }.Uri.ToString();
+        
+            return cleanUri;
+        }
+        catch (UriFormatException)
+        {
+            // Handle invalid URIs as needed
+            return url;
+        }
+    }
+    private async Task HandlePasteClick()
+    {
+        try
+        {
+            var text = await JsRuntime.InvokeAsync<string>("navigator.clipboard.readText");
+            if (!string.IsNullOrWhiteSpace(text))
+            {
+                trackUrl = text.Trim();
+                statusMessage = "📋 URL pasted from clipboard!";
+            }
+            else
+            {
+                statusMessage = "❌ Clipboard is empty or doesn't contain text";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"❌ Couldn't access clipboard: {ex.Message}";
+        }
+    }
+
+    private async Task StartDownload()
+    {
+        trackUrl = CleanSoundCloudUrl(trackUrl);
+        if (string.IsNullOrWhiteSpace(trackUrl))
+        {
+            statusMessage = "❌ Please enter a valid SoundCloud track URL.";
+            showResult = false;
+            return;
+        }
+
+        isLoading = true;
+        showResult = false;
+        statusMessage = "🔄 Processing your track... This may take a moment.";
+
+        try
+        {
+            downloadResult = await AudioDownloaderService.DownloadAsync(trackUrl, CancellationToken.None);
+
+            if (downloadResult.IsSuccessful)
+             {
+                 statusMessage = "✅ Your track has been processed successfully!";
+                 showResult = true;
+             }
+             else {
+                statusMessage = $"❌ Error: {downloadResult.Error.Message}";
+                 showResult = false;
+            }
+
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"❌ An error occurred: {ex.Message}";
+            showResult = false;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+          await   StartDownload();
+        }
+    }
+
+
+}
