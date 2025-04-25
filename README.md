@@ -59,3 +59,6 @@ Mary SoundCloud Downloader includes a token bucket limiter to ensure fair usage:
 
 This tool is meant for educational purposes only.  
 Always respect artist rights and avoid distributing copyrighted content.
+
+##Todo
+Will try to serve it somewhere cheap :)
