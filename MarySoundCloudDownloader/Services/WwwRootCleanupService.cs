@@ -47,7 +47,7 @@ public class WwwRootCleanupService : BackgroundService
             return;
         }
 
-        var files = Directory.GetFiles(wwwrootPath, "*", SearchOption.AllDirectories);
+        var files = Directory.GetFiles(wwwrootPath, "*.mp3", SearchOption.AllDirectories);
         int deletedCount = 0;
 
         foreach (var file in files)
