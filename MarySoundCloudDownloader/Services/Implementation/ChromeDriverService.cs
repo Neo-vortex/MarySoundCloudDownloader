@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Text.RegularExpressions;
 using MarySoundCloudDownloader.Models;
 using MarySoundCloudDownloader.Services.Interfaces;
 using OpenQA.Selenium;
@@ -12,8 +13,8 @@ namespace MarySoundCloudDownloader.Services.Implementation;
 public class ChromeDriverService : IBrowserService
 {
     private readonly ChromeDriver _driver;
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly ILogger<ChromeDriverService> _logger;
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
     private readonly IHttpClientFactory httpClientFactory;
 
     public ChromeDriverService(ILogger<ChromeDriverService> logger, IHttpClientFactory httpClientFactory)
@@ -24,13 +25,12 @@ public class ChromeDriverService : IBrowserService
         {
             PageLoadStrategy = PageLoadStrategy.Normal
         };
-        
+
         options.AddArgument("--disable-web-security");
         options.AddArgument("--disable-site-isolation-trials");
         options.AddArgument("--ignore-certificate-errors");
-        options.AddArgument("--user-data-dir=/tmp/chrome-test-profile");
         options.AddArgument("--headless=new");
-        options.AddArgument("--mute-audio"); 
+        options.AddArgument("--mute-audio");
         options.SetLoggingPreference(LogType.Performance, LogLevel.All);
 
         _logger.LogInformation("Initializing ChromeDriver...");
@@ -40,8 +40,7 @@ public class ChromeDriverService : IBrowserService
 
     public async Task<BrowserServiceResult> ProcessSoundCloudUrlAsync(string url, CancellationToken cancellationToken)
     {
-
-       return await ExecuteInNewTabAsync(async driver =>
+        return await ExecuteInNewTabAsync(async driver =>
         {
             var logs = new ConcurrentBag<string>();
 
@@ -82,10 +81,11 @@ public class ChromeDriverService : IBrowserService
             var trackPicture = trackPictureList.FirstOrDefault(x => x.TagName == "span");
             var actions2 = new Actions(driver);
             actions2.MoveToElement(trackPicture).Perform();
-            var  ariaLabel = trackPicture.GetAttribute("aria-label");
-            var  styleAttribute = ExtractBackgroundImageUrl(trackPicture.GetAttribute("style"));
+            var ariaLabel = trackPicture.GetAttribute("aria-label");
+            var styleAttribute = ExtractBackgroundImageUrl(trackPicture.GetAttribute("style"));
             styleAttribute =
-                Convert.ToBase64String(await httpClientFactory.CreateClient().GetByteArrayAsync(styleAttribute, cancellationToken));
+                Convert.ToBase64String(await httpClientFactory.CreateClient()
+                    .GetByteArrayAsync(styleAttribute, cancellationToken));
 
             try
             {
@@ -113,23 +113,31 @@ public class ChromeDriverService : IBrowserService
             {
                 logs.Add(log.Message);
             }
+
             return new BrowserServiceResult()
             {
                 ProcessSoundCloudUrl = logs,
                 TrackImage = styleAttribute,
                 TrackName = ariaLabel
-            } ;
+            };
         });
+    }
 
+    public void Dispose()
+    {
+        _semaphore?.Dispose();
+        _driver?.Quit();
+        _driver?.Dispose();
+        SuppressFinalize(this);
     }
 
     private static string ExtractBackgroundImageUrl(string style)
     {
-        var match = System.Text.RegularExpressions.Regex.Match(
-            style, 
+        var match = Regex.Match(
+            style,
             """background-image:\s*url\(["']?(.*?)["']?\)""",
-            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-    
+            RegexOptions.IgnoreCase);
+
         return match.Success ? match.Groups[1].Value : string.Empty;
     }
 
@@ -141,7 +149,7 @@ public class ChromeDriverService : IBrowserService
             /*
             // Store current window handle
             var originalWindow = _driver.CurrentWindowHandle;
-            
+
             // Open new tab
             ((IJavaScriptExecutor)_driver).ExecuteScript("window.open()");
             var windows = _driver.WindowHandles;
@@ -164,13 +172,5 @@ public class ChromeDriverService : IBrowserService
         {
             _semaphore.Release();
         }
-    }
-
-    public void Dispose()
-    {
-        _semaphore?.Dispose();
-        _driver?.Quit();
-        _driver?.Dispose();
-        SuppressFinalize(this);
     }
 }

@@ -10,25 +10,22 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
-builder.Services.AddServerSideBlazor().AddCircuitOptions(options =>
-{
-    options.DetailedErrors = true;
-});
+builder.Services.AddServerSideBlazor().AddCircuitOptions(options => { options.DetailedErrors = true; });
 builder.Services.AddHttpClient();
 builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    
+
     options.AddTokenBucketLimiter("GlobalPolicy", limiterOptions =>
     {
-        limiterOptions.TokenLimit = 25;         
+        limiterOptions.TokenLimit = 25;
         limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        limiterOptions.QueueLimit = 10;          
-        limiterOptions.ReplenishmentPeriod = TimeSpan.FromMinutes(1); 
-        limiterOptions.TokensPerPeriod = 25;      
-        limiterOptions.AutoReplenishment = true; 
+        limiterOptions.QueueLimit = 10;
+        limiterOptions.ReplenishmentPeriod = TimeSpan.FromMinutes(1);
+        limiterOptions.TokensPerPeriod = 25;
+        limiterOptions.AutoReplenishment = true;
     });
 });
 builder.Services.AddHostedService<WwwRootCleanupService>();
@@ -45,11 +42,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 app.UseHttpsRedirection();
-
-
 app.UseAntiforgery();
-
-app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .RequireRateLimiting("GlobalPolicy");
