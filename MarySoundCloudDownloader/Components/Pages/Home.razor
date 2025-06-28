@@ -2,9 +2,8 @@
 @using MarySoundCloudDownloader.Helpers
 @using MarySoundCloudDownloader.Models
 @using MarySoundCloudDownloader.Services.Interfaces
-@using Microsoft.AspNetCore.RateLimiting
-@inject IAudioDownloaderService AudioDownloaderService
 @using PinguApps.Blazor.QRCode
+@inject IAudioDownloaderService AudioDownloaderService
 @inject IJSRuntime JsRuntime
 
 <div class="min-vh-100 d-flex flex-column" style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
@@ -129,21 +128,41 @@
     </main>
 
     <footer class="py-4 bg-white border-top">
-        <div class="container text-center text-muted small">
-            <div class="mb-2">
-                <p class="mb-1">Mary SoundCloud Downloader is not affiliated with SoundCloud.</p>
-                <p class="mb-1">For educational purposes only. Please respect artists' rights.</p>
+        <div class="container text-center small text-muted">
+            <div class="mb-3">
+                <p class="mb-1">Mary SoundCloud Downloader is a personal project, crafted with care and quiet
+                    defiance.</p>
+                <p class="mb-1">It is not affiliated with SoundCloud. Please use responsibly and respect the work of all
+                    artists.</p>
             </div>
-            <div class="mt-2">
+
+            <div class="mb-3">
+                <p class="mb-1">
+                    <i class="fas fa-heart me-1 text-danger"></i>
+                    There was someone, once — her laughter still lingers in the lines of this code, her absence stitched
+                    between the functions and faded variables.
+                </p>
+                <p class="mb-1">
+                    This site exists because a part of her never truly left — in quiet corners of the internet, she
+                    still hums softly through every download link.
+                </p>
+                <p class="mb-1">
+                    May it remind you: love leaves echoes in unexpected places.
+                </p>
+            </div>
+
+            <div>
                 <p class="mb-0">
-                    <i class="fas fa-bug me-1"></i> Found an issue?
+                    <i class="fas fa-bug me-1"></i>
+                    Found an issue?
                     <a href="https://github.com/Neo-vortex/MarySoundCloudDownloader/issues" target="_blank" class="text-decoration-none">
-                        Report on GitHub with the track URL
+                        Report it on GitHub — even broken things deserve to be mended.
                     </a>
                 </p>
             </div>
         </div>
     </footer>
+
 </div>
 
 @code {
