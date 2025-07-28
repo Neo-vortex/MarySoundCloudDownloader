@@ -29,7 +29,7 @@ public class ChromeDriverService : IBrowserService
         options.AddArgument("--disable-web-security");
         options.AddArgument("--disable-site-isolation-trials");
         options.AddArgument("--ignore-certificate-errors");
-        options.AddArgument("--headless=new");
+        //options.AddArgument("--headless=new");
         options.AddArgument("--mute-audio");
         options.AddArgument("--no-sandbox");
         options.SetLoggingPreference(LogType.Performance, LogLevel.All);
@@ -53,26 +53,24 @@ public class ChromeDriverService : IBrowserService
 
             try
             {
+                                ((IJavaScriptExecutor)driver).ExecuteScript(@"
+                    const target = document.querySelector('a.playButton');
+                    if (!target) return;
+
+                    const rect = target.getBoundingClientRect();
+                    const centerX = rect.left + rect.width / 2;
+                    const centerY = rect.top + rect.height / 2;
+
+                    let topElement = document.elementFromPoint(centerX, centerY);
+                    let tries = 5;
+
+                    while (topElement && topElement !== target && !target.contains(topElement) && tries-- > 0) {
+                        console.warn('Removing:', topElement);
+                        topElement.remove();
+                        topElement = document.elementFromPoint(centerX, centerY);
+                    }
+                ");
                 _logger.LogInformation("Removing ot-fade-in elements...");
-                var elements = driver.FindElements(By.CssSelector(
-                    ".ot-fade-in, .otFlat.ot-iab-2.bottom.vertical-align-content.ot-buttons-fw, .modal"));
-
-                foreach (var element in elements)
-                {
-                    try
-                    {
-                        var elementName = element.TagName;
-                        ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].remove();", element);
-                        logs.Add($"Removed element: {elementName}");
-                    }
-                    catch (Exception ex)
-                    {
-                        logs.Add($"Error removing element: {ex.Message}");
-                        _logger.LogWarning(ex, "Error removing element");
-                    }
-                }
-
-                _logger.LogInformation("Removed {Count} ot-fade-in elements", elements.Count);
             }
             catch (Exception ex)
             {
