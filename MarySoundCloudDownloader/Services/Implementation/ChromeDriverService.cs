@@ -29,7 +29,7 @@ public class ChromeDriverService : IBrowserService
         options.AddArgument("--disable-web-security");
         options.AddArgument("--disable-site-isolation-trials");
         options.AddArgument("--ignore-certificate-errors");
-        //options.AddArgument("--headless=new");
+        options.AddArgument("--headless=new");
         options.AddArgument("--mute-audio");
         options.AddArgument("--no-sandbox");
         options.SetLoggingPreference(LogType.Performance, LogLevel.All);
