@@ -32,6 +32,7 @@ public class ChromeDriverService : IBrowserService
         options.AddArgument("--headless=new");
         options.AddArgument("--mute-audio");
         options.AddArgument("--no-sandbox");
+        options.AddArgument("--window-size=1920,1080");
         options.SetLoggingPreference(LogType.Performance, LogLevel.All);
 
         _logger.LogInformation("Initializing ChromeDriver...");
