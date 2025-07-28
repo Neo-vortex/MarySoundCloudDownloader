@@ -135,12 +135,38 @@ public class AudioDownloaderService(ILogger<AudioDownloaderService> logger, IBro
         }
     }
 
-    private  bool RunFFmpeg(string inputFile, string outputFile)
+    private bool RunFFmpeg(string inputFile, string outputFile)
     {
         try
         {
             const string ffmpegPath = "ffmpeg";
-            var arguments = $"-i \"{inputFile}\" -codec:a libmp3lame -q:a 0 -joint_stereo 1 -ar 44100 -ac 2 \"{outputFile}\"";
+
+            // Step 1: Detect file format
+            var formatCheck = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = ffmpegPath,
+                    Arguments = $"-i \"{inputFile}\"",
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
+
+            formatCheck.Start();
+            string stderr = formatCheck.StandardError.ReadToEnd();
+            formatCheck.WaitForExit();
+
+            if (stderr.Contains("Audio: mp3"))
+            {
+                logger.LogInformation("Detected MP3 format. Copying to output.");
+                File.Copy(inputFile, outputFile, overwrite: true);
+                return File.Exists(outputFile);
+            }
+
+
+            var arguments = $"-i \"{inputFile}\" -codec:a libmp3lame -b:a 192k -ac 2 \"{outputFile}\"";
 
             var process = new Process
             {
@@ -159,10 +185,13 @@ public class AudioDownloaderService(ILogger<AudioDownloaderService> logger, IBro
             process.Start();
             process.WaitForExit();
 
-            if (process.ExitCode == 0) return File.Exists(outputFile);
+            if (process.ExitCode == 0)
+            {
+                return File.Exists(outputFile);
+            }
+
             logger.LogInformation($"FFmpeg Error:\n{process.StandardError.ReadToEnd()}");
             return false;
-
         }
         catch (Exception ex)
         {
@@ -170,6 +199,7 @@ public class AudioDownloaderService(ILogger<AudioDownloaderService> logger, IBro
             return false;
         }
     }
+
 
 
 }
