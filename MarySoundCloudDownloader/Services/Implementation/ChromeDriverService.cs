@@ -52,6 +52,10 @@ public class ChromeDriverService : IBrowserService
             //sometimes it takes time for the cookie acceptance policy to show up
             await Task.Delay(1000, cancellationToken);
 
+            ((IJavaScriptExecutor)driver).ExecuteScript(@"
+                        const el = document.getElementById('onetrust-policy-text');
+                        if (el) el.remove();
+                    ");
             try
             {
                                 ((IJavaScriptExecutor)driver).ExecuteScript(@"
