@@ -29,7 +29,7 @@ public class ChromeDriverService : IBrowserService
         options.AddArgument("--disable-web-security");
         options.AddArgument("--disable-site-isolation-trials");
         options.AddArgument("--ignore-certificate-errors");
-        options.AddArgument("--headless=new");
+        //options.AddArgument("--headless=new");
         options.AddArgument("--mute-audio");
         options.AddArgument("--no-sandbox");
         options.SetLoggingPreference(LogType.Performance, LogLevel.All);
@@ -54,13 +54,16 @@ public class ChromeDriverService : IBrowserService
             try
             {
                 _logger.LogInformation("Removing ot-fade-in elements...");
-                var elements = driver.FindElements(By.CssSelector(".ot-fade-in"));
+                var elements = driver.FindElements(By.CssSelector(
+                    ".ot-fade-in, .otFlat.ot-iab-2.bottom.vertical-align-content.ot-buttons-fw, .modal"));
+
                 foreach (var element in elements)
                 {
                     try
                     {
+                        var elementName = element.TagName;
                         ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].remove();", element);
-                        logs.Add($"Removed element: {element.TagName}");
+                        logs.Add($"Removed element: {elementName}");
                     }
                     catch (Exception ex)
                     {
