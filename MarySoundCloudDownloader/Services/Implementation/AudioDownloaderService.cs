@@ -68,7 +68,7 @@ public class AudioDownloaderService(ILogger<AudioDownloaderService> logger, IBro
             
             return new DownloadResult()
             {
-                FilePath = UrlEncoder.EncodeUrl( httpContextAccessor.HttpContext!.Request.Scheme + "://" + httpContextAccessor.HttpContext!.Request.Host.Value + "/" + filename ),
+                FilePath = UrlEncoder.EncodeUrl( httpContextAccessor.HttpContext!.Request.Scheme + "://" + httpContextAccessor.HttpContext!.Request.Host.Value + "/" +  MakeFilenameSafe(filename) ),
                 TrackName = logs.TrackName,
                 TrackImage = logs.TrackImage,
             };
