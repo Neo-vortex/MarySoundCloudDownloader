@@ -60,7 +60,11 @@ public class AudioDownloaderService(ILogger<AudioDownloaderService> logger, IBro
             RunFFmpeg(Path.Combine(tempDir, "final"), Path.Combine(tempDir, "final.mp3"));
 
             var filename = logs.TrackName + ".mp3";
-            File.Copy(Path.Combine(tempDir, "final.mp3"),  Path.Combine(Path.Combine(env.ContentRootPath, "wwwroot"),filename), true);
+            File.Copy(Path.Combine(tempDir, "final.mp3"),  
+                Path.Combine(
+                    Path.Combine(env.ContentRootPath, "wwwroot"),
+                    MakeFilenameSafe(filename)), 
+                true);
             
             return new DownloadResult()
             {
@@ -75,7 +79,15 @@ public class AudioDownloaderService(ILogger<AudioDownloaderService> logger, IBro
         }
     }
     
+    public static string MakeFilenameSafe(string filename)
+    {
+        var invalidChars = Path.GetInvalidFileNameChars();
+        var cleaned = new string(filename
+            .Select(c => invalidChars.Contains(c) ? '_' : c)
+            .ToArray());
 
+        return cleaned.Trim(); 
+    }
     private static (string fileName, string extension) GetFileInfoFromUrl(string url)
     {
         try
